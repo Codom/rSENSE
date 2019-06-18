@@ -33,17 +33,19 @@ class DataSet < ActiveRecord::Base
   end
 
   def sanitize_data_set
-    self.title = strip_tags(title)
-    data.each do |data_row|
-      data_row.keys.each do |key|
-        # Remove any and all HTML tags
-        if data_row[key].is_a? String
-          data_row[key] = strip_tags(data_row[key])
-        end
-        # replace numeric hash keys with string hash keys
-        unless key.is_a? String
-          data_row[key.to_s] = data_row[key]
-          data_row.delete key
+    unless data.nil?
+      self.title = strip_tags(title)
+      data.each do |data_row|
+        data_row.keys.each do |key|
+          # Remove any and all HTML tags
+          if data_row[key].is_a? String
+            data_row[key] = strip_tags(data_row[key])
+          end
+          # replace numeric hash keys with string hash keys
+          unless key.is_a? String
+            data_row[key.to_s] = data_row[key]
+            data_row.delete key
+          end
         end
       end
     end
@@ -223,7 +225,9 @@ class DataSet < ActiveRecord::Base
   end
 
   def update_count
-    self.count = data.count
+    unless data.nil?
+      self.count = data.count
+    end
   end
 
   def self.get_next_name(project, fname)

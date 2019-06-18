@@ -318,33 +318,35 @@ class VisualizationsController < ApplicationController
       photos = dataset.media_objects.to_a.keep_if { |mo| mo.media_type == 'image' }.map { |mo| mo.to_hash(true) }
       has_pics = true if photos.size > 0
       metadata[i] = { name: dataset.title, user_id: dataset.user_id, dataset_id: dataset.id, timecreated: dataset.created_at, timemodified: dataset.updated_at, photos: photos }
-      dataset.data.each_with_index do |row, index|
-        # check if location and/or timestamp data exists
-        has_loc_data = true if has_loc_data == false and lat != '' and row.key?(lat) and row[lat] != ''
-        time_count += 1 if time_count < 3 and time_field != '' and row.key?(time_field) and row[time_field] != ''
-        num_count += 1 if num_count < 3 and num_field != '' and row.key?(num_field) and row[num_field] != ''
-        unless row.class == Hash
-          logger.info 'Bad row in JSON data:'
-          logger.info row.inspect
-        end
-
-        arr = []
-        arr.push index + 1
-        arr.push "#{dataset.title}(#{dataset.id})"
-        arr.push 'All'
-        arr.push ''
-        arr.push dataset.key.nil? ? "User: #{dataset.user.name}" : "Key: #{dataset.key}"
-        arr.push ''
-
-        data_fields.slice(arr.length, data_fields.length).each do |field|
-          if field[:formula]
-            arr.push dataset.formula_data[index][field[:fieldID][1..-1]]
-          else
-            arr.push row[field[:fieldID]]
+      unless dataset.data.nil?
+        dataset.data.each_with_index do |row, index|
+          # check if location and/or timestamp data exists
+          has_loc_data = true if has_loc_data == false and lat != '' and row.key?(lat) and row[lat] != ''
+          time_count += 1 if time_count < 3 and time_field != '' and row.key?(time_field) and row[time_field] != ''
+          num_count += 1 if num_count < 3 and num_field != '' and row.key?(num_field) and row[num_field] != ''
+          unless row.class == Hash
+            logger.info 'Bad row in JSON data:'
+            logger.info row.inspect
           end
-        end
 
-        format_data.push arr
+          arr = []
+          arr.push index + 1
+          arr.push "#{dataset.title}(#{dataset.id})"
+          arr.push 'All'
+          arr.push ''
+          arr.push dataset.key.nil? ? "User: #{dataset.user.name}" : "Key: #{dataset.key}"
+          arr.push ''
+
+          data_fields.slice(arr.length, data_fields.length).each do |field|
+            if field[:formula]
+              arr.push dataset.formula_data[index][field[:fieldID][1..-1]]
+            else
+              arr.push row[field[:fieldID]]
+            end
+          end
+
+          format_data.push arr
+        end
       end
 
       i += 1
